@@ -260,11 +260,11 @@ extern int gIsCustomerUi;
 static void zForce_ir_touch_report_data(struct i2c_client *client, uint8_t *buf)
 {
 	static uint16_t x[16], y[16], last_x[16], last_y[16];
-	static int pressure = 100;
+	//static int pressure = 100;
 
 	int count = buf[0];
 	int n;
-	static int fingers_down = 0;
+	int fingers_down = 0;
 
 	// process events
 	for (n = 0; n < count; n++) {
@@ -295,7 +295,7 @@ static void zForce_ir_touch_report_data(struct i2c_client *client, uint8_t *buf)
 			// touch up
 			g_touch_pressed[id] = 0;
 			
-			if (fingers_down) fingers_down--;
+			//if (fingers_down) fingers_down--;
 			
 			// multitouch events
 			input_report_abs(zForce_ir_touch_data.input, ABS_MT_TRACKING_ID, id);
@@ -310,6 +310,7 @@ static void zForce_ir_touch_report_data(struct i2c_client *client, uint8_t *buf)
 				input_report_abs(zForce_ir_touch_data.input, ABS_X, last_x[0]);
 				input_report_abs(zForce_ir_touch_data.input, ABS_Y, last_y[0]);
 				input_report_abs(zForce_ir_touch_data.input, ABS_PRESSURE, 0);	// Joseph 20101023
+				input_report_key(zForce_ir_touch_data.input, BTN_TOUCH, 0);
 			}
 		}
 		else {
@@ -333,19 +334,19 @@ static void zForce_ir_touch_report_data(struct i2c_client *client, uint8_t *buf)
 			if (id==0) {
 				input_report_abs(zForce_ir_touch_data.input, ABS_X, x[0]);
 				input_report_abs(zForce_ir_touch_data.input, ABS_Y, y[0]);
-				input_report_abs(zForce_ir_touch_data.input, ABS_PRESSURE, gIsCustomerUi ? pressure : 1024);	// Joseph 20101023
+				input_report_abs(zForce_ir_touch_data.input, ABS_PRESSURE, 1024);
+				input_report_key(zForce_ir_touch_data.input, BTN_TOUCH, 1);
 			}
 		}
 	}
-	
 
-	if (fingers_down == 0) {
-		input_mt_sync(zForce_ir_touch_data.input);
-	}
+//	if (fingers_down == 0) {
+//		input_mt_sync(zForce_ir_touch_data.input);
+//	}
 
 	// buttons (single & multitouch)
-	input_report_key(zForce_ir_touch_data.input, BTN_TOUCH, fingers_down >= 1);
-	input_report_key(zForce_ir_touch_data.input, BTN_TOOL_DOUBLETAP, fingers_down >= 2);
+	//input_report_key(zForce_ir_touch_data.input, BTN_TOUCH, fingers_down >= 1);
+	//input_report_key(zForce_ir_touch_data.input, BTN_TOOL_DOUBLETAP, fingers_down >= 2);
 	input_sync(zForce_ir_touch_data.input);
 	schedule();	// Joseph 20101023
 }
@@ -638,14 +639,14 @@ static int zForce_ir_touch_probe(
 	set_bit(ABS_MT_POSITION_Y, zForce_ir_touch_data.input->absbit);
 
 	//input_mt_create_slots(zForce_ir_touch_data.input, 2);
-	input_set_abs_params(zForce_ir_touch_data.input, ABS_X, 0, ZFORCE_TS_WIDTH - 1, 0, 0);
-	input_set_abs_params(zForce_ir_touch_data.input, ABS_Y, 0, ZFORCE_TS_HEIGHT - 1, 0, 0);
+	input_set_abs_params(zForce_ir_touch_data.input, ABS_X, 0, ZFORCE_TS_X_MAX, 0, 0);
+	input_set_abs_params(zForce_ir_touch_data.input, ABS_Y, 0, ZFORCE_TS_Y_MAX, 0, 0);
 	input_set_abs_params(zForce_ir_touch_data.input, ABS_PRESSURE, 0, 2048, 0, 0);
 	input_set_abs_params(zForce_ir_touch_data.input, ABS_HAT0X, 0, ZFORCE_TS_X_MAX, 0, 0);
 	input_set_abs_params(zForce_ir_touch_data.input, ABS_HAT0Y, 0, ZFORCE_TS_Y_MAX, 0, 0);
 	//input_set_abs_params(zForce_ir_touch_data.input, ABS_MT_SLOT, 0, 1, 0, 0);
-	input_set_abs_params(zForce_ir_touch_data.input, ABS_MT_POSITION_X, 0, ZFORCE_TS_WIDTH - 1, 0, 0);
-	input_set_abs_params(zForce_ir_touch_data.input, ABS_MT_POSITION_Y, 0, ZFORCE_TS_HEIGHT - 1, 0, 0);
+	input_set_abs_params(zForce_ir_touch_data.input, ABS_MT_POSITION_X, 0, ZFORCE_TS_X_MAX, 0, 0);
+	input_set_abs_params(zForce_ir_touch_data.input, ABS_MT_POSITION_Y, 0, ZFORCE_TS_Y_MAX, 0, 0);
 	input_set_abs_params(zForce_ir_touch_data.input, ABS_MT_TRACKING_ID, 0, 15, 0, 0);
 	input_set_abs_params(zForce_ir_touch_data.input, ABS_MT_TOUCH_MAJOR, 0, 15, 0, 0);
 	input_set_abs_params(zForce_ir_touch_data.input, ABS_MT_WIDTH_MAJOR, 0, 15, 0, 0);
